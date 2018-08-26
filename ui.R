@@ -52,19 +52,20 @@ ui= dashboardPage(skin="green",
                       tags$h4("Instructions:\n To predict using this model, upload test data in csv 
                               format by using the button below.", style="font-size:150%"),
                       
-                      tags$h4("Step 1: \n Upload the file\n; the testing file named 'test_file.csv' is uploaded in Github"),
-                      tags$h4(" The link to the github is: "),
+                      tags$h4("Step 1: \n Upload the file\n; the testing file named 'New_data.csv' is uploaded in Github"),
+                      tags$h4(" The link to the github is: https://github.com/xuzhanyouiowa/develop_data_products/blob/gh-pages/New_data.csv"),
                       tags$h4("Step 2: Selection prediction model;"),
                       tags$h4("Step 3: download the results;"),
                       tags$span("section in the sidebar to  download the predictions.", style="font-size:150%"),
                       
                       br(),
-                      column(width = 4,
-                             fileInput('file1', em('Upload test data in csv format ',
+                      column(width = 12,
+                             fileInput('file1', em('Upload your test data in csv format, please see step 1 to download the testing data from Github.
+The input file should have 8 columns with colnames as "pregnant", "glucose",  "pressure", "triceps",  "insulin",  "mass","pedigree","age" from PimaIndiansDiabetes dataset',
                                                    style="text-align:center;color:blue;font-size:150%"),
                                        multiple = FALSE,
-                                       accept=c('.csv')),
-                             
+                                       accept=c('.csv'), width = 1000),
+                             h3("If you do not load any data, it will show the top 5 rows of the data frame"),
                             # uiOutput("sample_input_data_heading"),
                              dataTableOutput("sample_input_data"),
                           
@@ -82,10 +83,11 @@ ui= dashboardPage(skin="green",
                       tabItem(tabName="ModelSelection_Box", labeel =" Model comparison",
                               fluidRow(
                                 box(title = "Create training and testing data sets",
+                   
                                     solidHeader = T, status = "info",
                                     collapsible = T, collapsed = F,
                                     width = 12,
-                                    radioButtons("to_seleect_model_1", "Select ML Model", choices = c("Logistic Regression (LR)", "Random Forest (RF)", "Support Vector Machine (SVM)"), 
+                                    radioButtons("to_seleect_model_1", "Select ML Model", choices = c("Random Forest (RF)", "Support Vector Machine (SVM)"), 
                                                  selected = "Random Forest (RF)", inline = T),
                                     
                                     # add a row by zhanyou
@@ -94,7 +96,8 @@ ui= dashboardPage(skin="green",
                                     fluidRow(
                                       box(title = "Training and testing data set Selected",
                                           width = 6, solidHeader = T, status = "info",
-                                          h3("how many samples in the training data set?"),
+                                          h3("how many samples in the training and testing data set you selected?"),
+                                          br(),
                                            uiOutput("summary_training")
                                          # helpText("Show the top 5 of the data")
                                          # dataTableOutput("top5_training")
@@ -109,12 +112,19 @@ ui= dashboardPage(skin="green",
                                     # add radio buton for heatmap or surface map
                                     # add slider bar for threshold for ROX, FAM, and VIC
                                     # this row has three boxes: box one has ROX, box2 has FAM, and box3 has VIC
-                                   )),
-                          column(width = 4,
-                                 h3("to estomate the reliable of the model by n-fold cros-vlidation, default 5-fold"),
+                                   ),
+                              
+                              box(title = "Cross validation of the selectied machine learning model",
+                                  
+                                  solidHeader = T, status = "success",
+                                  collapsible = T, collapsed = F,
+                                  width = 12,
+                                  
+                          column(width = 10,
+                                 h3("Selected n-fold cros-vlidation, the default is 5-fold"),
                                    dataTableOutput("CV_10Ffolder_results")
 
-                            )),
+                            )))),
                     
                   # add the 3rd row
                   tabItem(tabName="download",
@@ -135,8 +145,9 @@ ui= dashboardPage(skin="green",
                             downloadButton("downloadData", em('Download Predictions',
                                         style="text-align:center;color:blue;font-size:150%"))
                             ),
-                            box(title = "Summary of the predictionS!",  width = 6, solidHeader = T,
+                            box(title = "Summary of the predictions!",  width = 6, solidHeader = T,
                                 status = "warning",
+                            h3("If no data is uploaded, show default 5 rows of the data frame"),    
                             tableOutput("sample_prediction_heading")
 
                             )

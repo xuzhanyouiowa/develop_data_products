@@ -30,7 +30,7 @@ shinyServer(function(input, output) {
     inFile <- input$file1
     
     if (is.null(inFile)){
-      return(NULL)
+      return(PimaIndiansDiabetes[1:5,])
     }else{
       input_data =  read.csv(input$file1$datapath, header  = TRUE)
       
@@ -78,7 +78,7 @@ output$sample_prediction_heading = renderTable({  # show only if data has been u
   inFile <- input$file1
 
   if (is.null(inFile)){
-    return(NULL)
+    return(tail(PimaIndiansDiabetes))
   }else{
     table(predicted_results_for_shared_usews()$pred_new)
   }
@@ -172,13 +172,13 @@ output$CV_10Ffolder_results = renderDataTable({
 output$summary_training = renderUI({
   if(is.null(input$percent_Training)){return()}
   else {
-  text111 = paste0("The percent of data you selected is: ", input$percent_Training, "%",". It has ", 
+  text111 = paste0("The percent of data you selected for training set is: \n", input$percent_Training, "%",". It has ", 
                    round(nrow(PimaIndiansDiabetes)*input$percent_Training/100, 0)," rows and ", ncol(PimaIndiansDiabetes),
                    " columns.", sep="")
-  text222 = paste0("The percent of data you selected is: ", 100-input$percent_Training, "%",". It has ", 
+  text222 = paste0("The percent of data you selected testing data set is: \n", 100-input$percent_Training, "%",". It has ", 
                    nrow(PimaIndiansDiabetes)-round(nrow(PimaIndiansDiabetes)*input$percent_Training/100, 0)," rows and ", ncol(PimaIndiansDiabetes),
                    " columns.", sep="")
-  tags$h4(text111, br(), text222)
+  tags$h4(text111, br(),br(), text222)
   # br()
   # tags$h3(text222)
   
@@ -200,6 +200,8 @@ output$top5_training= renderDataTable({
 # })
 
 output$prediction_accuracy_001 = renderTable({
+  if(input$to_seleect_model_1 =="Random Forest (RF)"){
+  
   if(is.null(input$percent_Training)){ return()}
   else {
     set.seed(7)
@@ -210,7 +212,7 @@ output$prediction_accuracy_001 = renderTable({
     # train a model and summarize model
     set.seed(7)
     control <- trainControl(method="repeatedcv", number=3, repeats=1)
-    fit.rf <- train(diabetes~., data=training, method="rf", metric="Accuracy", trControl=control, ntree=500)
+  #  fit.rf <- train(diabetes~., data=training, method="rf", metric="Accuracy", trControl=control, ntree=500)
     #print(fit.rf)
     #print(fit.rf$finalModel)
     # create standalone model using all training data
@@ -224,7 +226,46 @@ output$prediction_accuracy_001 = renderTable({
     ma_df_pa = data.frame(cbind(rownames(ma_df), ma_df))
     rows123= c("Sensitivity","Specificity", "Precision","Recall","Balanced Accuracy")
  names(ma_df_pa) = c("Parameters", "Accuracy")
-    ma_df_pa[rownames(ma_df_pa)%in%rows123, ]
+    RF_5rows=ma_df_pa[rownames(ma_df_pa)%in%rows123, ]
+    RF_5rows
+    Model_Selected= rep("RandomForest", 5)
+    RF_5rows$Model =data.frame(RF_5rows, Model_Selected)
+  
+  }
+  }else{
+    
+    if(is.null(input$percent_Training)){ return()}
+    else {
+      set.seed(110)
+      # create 80%/20% for training and validation datasets
+      validation_index <- createDataPartition(PimaIndiansDiabetes$diabetes, p=input$percent_Training/100, list=FALSE)
+      validation <- PimaIndiansDiabetes[-validation_index,]
+      training <- PimaIndiansDiabetes[validation_index,]
+      # train a model and summarize model
+      set.seed(110)
+      control <- trainControl(method="repeatedcv", number=3, repeats=1)
+    #  fit.rf <- train(diabetes~., data=training, method="rf", metric="Accuracy", trControl=control, ntree=500)
+      #print(fit.rf)
+      #print(fit.rf$finalModel)
+      # create standalone model using all training data
+      set.seed(110)
+     #  finalModel <- randomForest(diabetes~., training, mtry=2, ntree=500)
+      finalModel = readRDS("finalModel_SVM_diabetes.rds")
+      
+      # make a predictions on "new data" using the final model
+      final_predictions <- predict(finalModel, validation[,1:(ncol(validation)-1)])
+      results123=confusionMatrix(final_predictions, validation$diabetes)
+      ma= as.matrix(results123[[4]]) 
+      ma_df=as.data.frame(ma); ma_df$V1 = apply(ma_df, 1, function(x) round(x, 4))
+      ma_df_pa = data.frame(cbind(rownames(ma_df), ma_df))
+      rows123= c("Sensitivity","Specificity", "Precision","Recall","Balanced Accuracy")
+      names(ma_df_pa) = c("Parameters", "Accuracy")
+      RF_5rows=ma_df_pa[rownames(ma_df_pa)%in%rows123, ]
+      RF_5rows
+      Model_Selected= rep("Support Vector Machine", 5)
+      RF_5rows$Model =data.frame(RF_5rows, Model_Selected)
+      
+    }
   }
 })
 
